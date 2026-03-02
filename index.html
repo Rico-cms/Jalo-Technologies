@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="fr" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jalo Technologies | Ingénierie Digitale Stratégique</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        jalo: {
+                            black: '#030303',
+                            dark: '#0A0A0A',
+                            yellow: '#D4FF00', // Electric Tech Yellow
+                            blue: '#0044FF',   // Deep Tech Blue
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --yellow: #D4FF00;
+            --black: #030303;
+        }
+
+        body, html {
+            background-color: var(--black);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Lenis */
+        html.lenis { height: auto; }
+        .lenis.lenis-smooth { scroll-behavior: auto; }
+        .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+        .lenis.lenis-stopped { overflow: hidden; }
+
+        /* Loader */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--black);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .loader-text {
+            color: var(--yellow);
+            font-size: 14px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+        .loader-bar-container {
+            width: 200px;
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            margin-top: 20px;
+            position: relative;
+        }
+        .loader-bar {
+            position: absolute;
+            top: 0; left: 0; height: 100%;
+            background: var(--yellow);
+            width: 0%;
+            box-shadow: 0 0 10px var(--yellow);
+        }
+
+        /* 3D Canvas */
+        #webgl-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Typography & Utilities */
+        .text-huge {
+            font-size: clamp(3.5rem, 10vw, 15rem);
+            line-height: 0.85;
+            letter-spacing: -0.04em;
+        }
+        .text-outline {
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2);
+        }
+        .text-outline-yellow {
+            color: transparent;
+            -webkit-text-stroke: 1px var(--yellow);
+        }
+
+        /* Custom Cursor */
+        .cursor-dot {
+            position: fixed; top: 0; left: 0;
+            width: 8px; height: 8px;
+            background: var(--yellow);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 100000;
+            transform: translate(-50%, -50%);
+        }
+        .cursor-ring {
+            position: fixed; top: 0; left: 0;
+            width: 40px; height: 40px;
+            border: 1px solid rgba(212, 255, 0, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 99999;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s, background 0.3s;
+        }
+        .cursor-hover .cursor-ring {
+            width: 80px; height: 80px;
+            background: rgba(212, 255, 0, 0.1);
+            backdrop-filter: blur(2px);
+            border-color: transparent;
+        }
+
+        /* Split Text Animation prep */
+        .char {
+            display: inline-block;
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        .line-mask {
+            overflow: hidden;
+            display: block;
+        }
+
+        /* UI Elements */
+        .magnetic-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 1.5rem 3rem;
+            border-radius: 100px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(10,10,10,0.5);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            text-transform: uppercase;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            transition: border-color 0.3s;
+        }
+        .magnetic-btn:hover { border-color: var(--yellow); cursor: none;}
+        .magnetic-btn .fill {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 0%;
+            background: var(--yellow);
+            z-index: -1;
+            transition: height 0.3s ease;
+        }
+        .magnetic-btn:hover .fill { height: 100%; }
+        .magnetic-btn:hover span { color: var(--black); font-weight: bold; }
+
+        /* Horizontal Scroll Sections */
+        .h-scroll-container {
+            width: 300vw;
+            height: 100vh;
+            display: flex;
+            flex-wrap: nowrap;
+        }
+        .h-panel {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 0 10vw;
+            position: relative;
+        }
+        
+        /* Glass Cards */
+        .deep-glass {
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+        }
+
+        /* Noise Overlay */
+        .noise {
+            position: fixed; inset: 0; z-index: 9990; pointer-events: none;
+            background: url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+            opacity: 0.03; mix-blend-mode: screen;
+        }
+
+        /* Terminal UI Styles */
+        #ai-terminal {
+            transition: opacity 0.5s ease;
+        }
+        .terminal-scroll::-webkit-scrollbar { width: 6px; }
+        .terminal-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.5); }
+        .terminal-scroll::-webkit-scrollbar-thumb { background: var(--yellow); }
+        
+        .blinking-cursor::after {
+            content: '█';
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+        
+        /* Typing indicator dots */
+        .typing-dots::after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Boot Loader -->
+    <div id="loader">
+        <div class="loader-text" id="loader-text">JALO_SYS.OP // BOOTING...</div>
+        <div class="loader-bar-container">
+            <div class="loader-bar" id="loader-bar"></div>
+        </div>
+    </div>
+
+    <!-- Noise Texture -->
+    <div class="noise"></div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot" id="c-dot"></div>
+    <div class="cursor-ring" id="c-ring"></div>
+
+    <!-- 3D Canvas -->
+    <div id="webgl-container"></div>
+
+    <!-- AI Diagnostic Terminal Overlay -->
+    <div id="ai-terminal" class="fixed inset-0 z-[50000] hidden bg-jalo-black/80 backdrop-blur-xl flex-col items-center justify-center p-4 md:p-10 opacity-0">
+        <div class="w-full max-w-5xl h-[85vh] border border-jalo-yellow/30 bg-black/80 flex flex-col font-mono text-sm relative shadow-[0_0_50px_rgba(212,255,0,0.1)]">
+            
+            <!-- Terminal Header -->
+            <div class="flex justify-between items-center border-b border-jalo-yellow/30 p-4 text-jalo-yellow bg-jalo-yellow/5">
+                <span class="flex items-center gap-3 tracking-widest">
+                    <span class="w-2 h-2 bg-jalo-yellow rounded-full animate-pulse"></span>
+                    JALO_SYS.OP // MOTEUR_ANALYSE_IA ✨
+                </span>
+                <button id="close-terminal" class="hover:text-white hover-magnet transition-colors tracking-widest" data-magnet="10">[ FERMER ]</button>
+            </div>
+            
+            <!-- Terminal Output -->
+            <div id="terminal-output" class="flex-1 overflow-y-auto terminal-scroll p-6 text-white/80 space-y-4 whitespace-pre-wrap">
+                <div class="text-jalo-blue">> Séquence d'initialisation du réseau neuronal approuvée.</div>
+                <div class="text-jalo-blue">> Accès aux modèles d'architecture Jalo Technologies... [OK]</div>
+                <div class="text-white mt-4">Je suis JALO_SYS.OP, entité d'ingénierie stratégique.
+Décrivez la complexité opérationnelle ou technologique de votre infrastructure. Je générerai une proposition d'architecture de résolution.</div>
+            </div>
+            
+            <!-- Terminal Input -->
+            <div class="border-t border-jalo-yellow/30 p-4 flex gap-4 bg-jalo-yellow/5 items-center">
+                <span class="text-jalo-yellow font-bold">></span>
+                <input type="text" id="terminal-input" class="flex-1 bg-transparent outline-none text-jalo-yellow placeholder-white/20 font-mono" placeholder="Ex: 'Nous avons des silos de données qui ralentissent nos livraisons de 30%...'" autocomplete="off" />
+                <button id="terminal-submit" class="text-white/50 hover:text-jalo-yellow transition-colors hover-magnet p-2" data-magnet="10">EXECUTER</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-40 p-6 md:p-10 flex justify-between items-start mix-blend-difference">
+        <div class="font-mono text-xs tracking-[0.2em] uppercase text-white hover-magnet cursor-none" data-magnet="20">
+            Jalo<br>
+            <span class="text-jalo-yellow">Technologies</span>
+        </div>
+        <div class="text-right font-mono text-[10px] tracking-widest text-white/50 uppercase hidden md:block">
+            Ingénierie Digitale<br>
+            Abidjan / Global
+        </div>
+    </nav>
+
+    <!-- MAIN SCROLL CONTAINER -->
+    <main id="main-content">
+        
+        <!-- 1. HERO (Fullscreen Immersive) -->
+        <section class="h-screen w-full flex flex-col justify-center px-6 md:px-20 relative" id="hero">
+            <div class="z-10 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full text-center mix-blend-screen pointer-events-none">
+                <h1 class="text-huge font-bold text-white font-sans uppercase m-0 leading-[0.8]">
+                    <span class="line-mask block"><span class="char title-anim">Système</span></span>
+                    <span class="line-mask block"><span class="char title-anim text-outline-yellow">Maître.</span></span>
+                </h1>
+            </div>
+            
+            <div class="absolute bottom-10 left-6 md:left-20 z-10 flex flex-col md:flex-row gap-4 md:gap-6">
+                <button id="open-diagnostic" class="magnetic-btn hover-magnet group" data-magnet="40">
+                    <span class="relative z-10 text-white transition-colors group-hover:text-jalo-black">Diagnostic IA ✨</span>
+                    <div class="fill"></div>
+                </button>
+                <a href="#narrative" class="magnetic-btn hover-magnet border-transparent bg-transparent" data-magnet="20">
+                    <span class="relative z-10 text-white/50 hover:text-white transition-colors">Explorer</span>
+                </a>
+            </div>
+
+            <div class="absolute bottom-12 right-6 md:right-20 z-10 font-mono text-[10px] uppercase tracking-widest text-white/40 text-right">
+                Défilement Requis <br>
+                <span class="text-jalo-yellow animate-pulse">↓</span>
+            </div>
+        </section>
+
+        <!-- 2. NARRATIVE SCROLL (The 3D Morphing trigger) -->
+        <section class="min-h-[200vh] relative" id="narrative">
+            <div class="sticky top-0 h-screen flex flex-col justify-center px-6 md:px-20 pointer-events-none">
+                
+                <!-- State 1: Chaos -->
+                <div class="absolute top-1/2 transform -translate-y-1/2 narrative-text" id="text-chaos">
+                    <div class="font-mono text-jalo-yellow text-xs tracking-widest mb-6">01 // L'ENTROPIE</div>
+                    <h2 class="text-4xl md:text-7xl font-bold uppercase leading-[0.9] text-white">
+                        La complexité <br>
+                        <span class="text-outline text-white/30">détruit la</span> <br>
+                        performance.
+                    </h2>
+                    <p class="font-mono text-sm text-white/50 mt-8 max-w-md">Silos, opacité, dette technique. Sans architecture, toute croissance s'effondre sous son propre poids.</p>
+                </div>
+
+                <!-- State 2: Order -->
+                <div class="absolute top-1/2 transform -translate-y-1/2 narrative-text opacity-0 translate-y-20" id="text-order">
+                    <div class="font-mono text-jalo-blue text-xs tracking-widest mb-6">02 // L'INGÉNIERIE</div>
+                    <h2 class="text-4xl md:text-7xl font-bold uppercase leading-[0.9] text-white">
+                        La structuration <br>
+                        <span class="text-outline text-white/30">génère la</span> <br>
+                        domination.
+                    </h2>
+                    <p class="font-mono text-sm text-white/50 mt-8 max-w-md">Nous imposons l'ordre. Des architectures mathématiques, scalables, avec un taux d'exécution garanti à 110%.</p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 3. SHOWCASE (Horizontal Scroll Glassmorphism) -->
+        <section id="showcase-pin" class="bg-jalo-dark">
+            <div class="h-scroll-container" id="showcase-container">
+                
+                <!-- Panel 1: Softlogis -->
+                <div class="h-panel">
+                    <div class="deep-glass w-full max-w-6xl rounded-[2rem] p-8 md:p-16 flex flex-col md:flex-row gap-8 md:gap-12 items-center relative overflow-hidden group">
+                        <div class="absolute w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-jalo-yellow/10 blur-[100px] -top-20 -right-20 rounded-full group-hover:bg-jalo-yellow/20 transition-all duration-700"></div>
+                        <div class="flex-1 z-10 w-full">
+                            <div class="font-mono text-jalo-yellow text-xs tracking-widest mb-4">DÉPLOYÉ // ERP SUR-MESURE</div>
+                            <h3 class="text-4xl md:text-7xl font-bold mb-6 md:mb-8">Softlogis</h3>
+                            <div class="h-[1px] w-full bg-white/10 mb-6 md:mb-8"></div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 font-mono text-xs text-white/60">
+                                <div>
+                                    <span class="text-white/30 block mb-2">PROBLÈME</span>
+                                    Goulots logistiques internes, opacité data.
+                                </div>
+                                <div>
+                                    <span class="text-jalo-yellow block mb-2">RÉSULTAT</span>
+                                    -40% temps de traitement. Centralisation absolue.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 2: e-track -->
+                <div class="h-panel">
+                    <div class="deep-glass w-full max-w-6xl rounded-[2rem] p-8 md:p-16 flex flex-col md:flex-row gap-8 md:gap-12 items-center relative overflow-hidden group">
+                        <div class="absolute w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-jalo-blue/10 blur-[100px] -top-20 -right-20 rounded-full group-hover:bg-jalo-blue/20 transition-all duration-700"></div>
+                        <div class="flex-1 z-10 w-full">
+                            <div class="font-mono text-jalo-blue text-xs tracking-widest mb-4">OPÉRATIONNEL // NEEMBA</div>
+                            <h3 class="text-4xl md:text-7xl font-bold mb-6 md:mb-8">e-track</h3>
+                            <div class="h-[1px] w-full bg-white/10 mb-6 md:mb-8"></div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 font-mono text-xs text-white/60">
+                                <div>
+                                    <span class="text-white/30 block mb-2">CONTEXTE</span>
+                                    Traçabilité d'actifs à haute valeur en milieu industriel.
+                                </div>
+                                <div>
+                                    <span class="text-jalo-blue block mb-2">IMPACT</span>
+                                    Monitoring temps réel. Pertes d'exploitation neutralisées.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 3: Jalo Shops -->
+                <div class="h-panel">
+                    <div class="deep-glass w-full max-w-6xl rounded-[2rem] p-8 md:p-16 flex flex-col md:flex-row gap-8 md:gap-12 items-center relative overflow-hidden group">
+                        <div class="absolute w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-white/5 blur-[100px] -top-20 -right-20 rounded-full group-hover:bg-white/10 transition-all duration-700"></div>
+                        <div class="flex-1 z-10 w-full">
+                            <div class="font-mono text-white/50 text-xs tracking-widest mb-4 flex items-center gap-2">
+                                <span class="w-2 h-2 bg-jalo-yellow rounded-full animate-pulse"></span> EN DÉVELOPPEMENT // HERVÉ ZONGO
+                            </div>
+                            <h3 class="text-4xl md:text-7xl font-bold mb-6 md:mb-8">Jalo Shops</h3>
+                            <div class="h-[1px] w-full bg-white/10 mb-6 md:mb-8"></div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 font-mono text-xs text-white/60">
+                                <div>
+                                    <span class="text-white/30 block mb-2">VISION</span>
+                                    Écosystème e-commerce ultra-scalable.
+                                </div>
+                                <div>
+                                    <span class="text-white block mb-2">ARCHITECTURE</span>
+                                    Headless, micro-services, résilience aux pics massifs.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 4. MANIFESTO / CTA -->
+        <section class="min-h-screen flex flex-col justify-center items-center text-center px-6 py-32 relative" id="contact">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,255,0,0.05)_0%,transparent_50%)]"></div>
+            
+            <h2 class="text-huge font-bold uppercase mb-12 mix-blend-screen">
+                <span class="line-mask block"><span class="char footer-anim text-outline-yellow">Initialiser</span></span>
+                <span class="line-mask block"><span class="char footer-anim">L'Avenir.</span></span>
+            </h2>
+            
+            <p class="font-mono text-sm text-white/50 max-w-xl mx-auto mb-16 footer-fade">
+                Nous ne sommes pas une agence. Nous sommes une force de frappe technique. Si vous avez une problématique complexe, nos ingénieurs sont prêts.
+            </p>
+            
+            <a href="mailto:contact@jalotechnologies.com" class="magnetic-btn hover-magnet footer-fade group" data-magnet="50">
+                <span class="relative z-10 text-white transition-colors group-hover:text-jalo-black">Déployer Jalo_Sys</span>
+                <div class="fill"></div>
+            </a>
+            
+            <div class="mt-32 font-mono text-[10px] tracking-[0.3em] text-white/20 uppercase">
+                Jalo Technologies © 2026
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Scripts -->
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- GSAP Core & ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <!-- Lenis for Smooth Scroll -->
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        /* --- 1. LOADER SEQUENCE --- */
+        const tlLoader = gsap.timeline();
+        tlLoader.to("#loader-bar", { width: "100%", duration: 1.5, ease: "power3.inOut" })
+                .to("#loader-text", { opacity: 0, duration: 0.2 }, "+=0.2")
+                .to("#loader", { yPercent: -100, duration: 1, ease: "expo.inOut" })
+                .to(".title-anim", { y: "0%", opacity: 1, duration: 1.2, stagger: 0.1, ease: "power4.out" }, "-=0.5")
+                .add(() => { document.body.style.overflow = "auto"; initLenis(); });
+
+        /* --- 2. SMOOTH SCROLL (LENIS) --- */
+        let lenis;
+        function initLenis() {
+            lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+            lenis.on('scroll', ScrollTrigger.update);
+            gsap.ticker.add((time)=>{ lenis.raf(time * 1000); });
+            gsap.ticker.lagSmoothing(0, 0);
+        }
+
+        /* --- 3. MAGNETIC BUTTONS & CUSTOM CURSOR --- */
+        const cDot = document.getElementById('c-dot');
+        const cRing = document.getElementById('c-ring');
+        let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+        let ringX = mouseX, ringY = mouseY;
+        let isCursorActive = true;
+
+        document.addEventListener('mousemove', (e) => {
+            if(!isCursorActive) return;
+            mouseX = e.clientX; mouseY = e.clientY;
+            gsap.to(cDot, { x: mouseX, y: mouseY, duration: 0 });
+        });
+
+        gsap.ticker.add(() => {
+            if(!isCursorActive) return;
+            ringX += (mouseX - ringX) * 0.15;
+            ringY += (mouseY - ringY) * 0.15;
+            gsap.set(cRing, { x: ringX, y: ringY });
+        });
+
+        // Initialize magnet effects
+        function initMagnets() {
+            document.querySelectorAll('.hover-magnet').forEach(elem => {
+                elem.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+                elem.addEventListener('mouseleave', () => {
+                    document.body.classList.remove('cursor-hover');
+                    gsap.to(elem, { x: 0, y: 0, duration: 0.5, ease: "power3.out" });
+                });
+                elem.addEventListener('mousemove', (e) => {
+                    const rect = elem.getBoundingClientRect();
+                    const magnetStrength = elem.getAttribute('data-magnet') || 20;
+                    const relX = e.clientX - rect.left - rect.width / 2;
+                    const relY = e.clientY - rect.top - rect.height / 2;
+                    gsap.to(elem, { x: relX * (magnetStrength/100), y: relY * (magnetStrength/100), duration: 0.2 });
+                });
+            });
+        }
+        initMagnets();
+
+        /* --- 4. THREE.JS MORPHING PARTICLE SYSTEM --- */
+        const canvasContainer = document.getElementById('webgl-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 50;
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        canvasContainer.appendChild(renderer.domElement);
+
+        // Particle setup
+        const particleCount = 6000;
+        const geometry = new THREE.BufferGeometry();
+        
+        // Arrays for different states
+        const positions = new Float32Array(particleCount * 3); // Current
+        const targetSphere = new Float32Array(particleCount * 3); // State 0
+        const targetChaos = new Float32Array(particleCount * 3);  // State 1
+        const targetGrid = new Float32Array(particleCount * 3);   // State 2
+
+        // Generate Target Shapes
+        const size = 30;
+        let gridDim = Math.ceil(Math.pow(particleCount, 1/3));
+        
+        for(let i = 0; i < particleCount; i++) {
+            let i3 = i * 3;
+            
+            // 1. Sphere Math
+            const phi = Math.acos(-1 + (2 * i) / particleCount);
+            const theta = Math.sqrt(particleCount * Math.PI) * phi;
+            targetSphere[i3] = size * Math.cos(theta) * Math.sin(phi);
+            targetSphere[i3+1] = size * Math.sin(theta) * Math.sin(phi);
+            targetSphere[i3+2] = size * Math.cos(phi);
+
+            // 2. Chaos Math
+            targetChaos[i3] = (Math.random() - 0.5) * size * 4;
+            targetChaos[i3+1] = (Math.random() - 0.5) * size * 4;
+            targetChaos[i3+2] = (Math.random() - 0.5) * size * 4;
+
+            // 3. Grid Math
+            let x = i % gridDim;
+            let y = Math.floor(i / gridDim) % gridDim;
+            let z = Math.floor(i / (gridDim * gridDim));
+            let step = (size * 1.5) / gridDim;
+            targetGrid[i3] = (x - gridDim/2) * step;
+            targetGrid[i3+1] = (y - gridDim/2) * step;
+            targetGrid[i3+2] = (z - gridDim/2) * step;
+
+            // Initialize
+            positions[i3] = targetSphere[i3];
+            positions[i3+1] = targetSphere[i3+1];
+            positions[i3+2] = targetSphere[i3+2];
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        const material = new THREE.PointsMaterial({
+            size: 0.15,
+            color: 0xD4FF00, // Yellow
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+
+        const morphParams = { progress: 0 }; 
+        let currentSource = targetSphere;
+        let currentTarget = targetSphere;
+
+        function updateParticles() {
+            const posAttr = geometry.attributes.position;
+            for(let i = 0; i < particleCount * 3; i++) {
+                posAttr.array[i] = currentSource[i] + (currentTarget[i] - currentSource[i]) * morphParams.progress;
+            }
+            posAttr.needsUpdate = true;
+        }
+
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.002;
+            particles.rotation.y = time;
+            particles.rotation.x = time * 0.5;
+
+            // Parallax
+            camera.position.x += ((mouseX / window.innerWidth - 0.5) * 10 - camera.position.x) * 0.05;
+            camera.position.y += (-(mouseY / window.innerHeight - 0.5) * 10 - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            if(morphParams.progress > 0 && morphParams.progress < 1) updateParticles();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        /* --- 5. SCROLL ANIMATIONS (GSAP) --- */
+        const narrativeTl = gsap.timeline({
+            scrollTrigger: {
+                trigger: "#narrative",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 1,
+            }
+        });
+
+        narrativeTl.add(() => { currentSource = targetSphere; currentTarget = targetChaos; morphParams.progress = 0; material.color.setHex(0xFFFFFF); })
+                 .to(morphParams, { progress: 1, onUpdate: updateParticles }, 0)
+                 .to("#text-chaos", { opacity: 0, y: -50 }, 0.4) 
+                 .add(() => { currentSource = targetChaos; currentTarget = targetGrid; morphParams.progress = 0; material.color.setHex(0x0044FF); }, 0.5)
+                 .to(morphParams, { progress: 1, onUpdate: updateParticles }, 0.5)
+                 .to("#text-order", { opacity: 1, y: 0 }, 0.5); 
+
+        const showcaseContainer = document.getElementById('showcase-container');
+        const panels = gsap.utils.toArray('.h-panel');
+
+        gsap.to(panels, {
+            xPercent: -100 * (panels.length - 1),
+            ease: "none",
+            scrollTrigger: {
+                trigger: "#showcase-pin",
+                pin: true,
+                scrub: 1,
+                snap: 1 / (panels.length - 1),
+                end: () => "+=" + showcaseContainer.offsetWidth
+            }
+        });
+        
+        gsap.to(particles.scale, {
+            x: 0.5, y: 0.5, z: 0.5,
+            ease: "none",
+            scrollTrigger: {
+                trigger: "#showcase-pin",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 1
+            }
+        });
+
+        gsap.to(".footer-anim", {
+            scrollTrigger: { trigger: "#contact", start: "top 70%" },
+            y: "0%", opacity: 1, duration: 1, stagger: 0.1, ease: "power4.out"
+        });
+        gsap.from(".footer-fade", {
+            scrollTrigger: { trigger: "#contact", start: "top 60%" },
+            y: 30, opacity: 0, duration: 1, stagger: 0.2, ease: "power3.out"
+        });
+
+
+        /* --- 6. GEMINI API LLM INTEGRATION (TERMINAL IA ✨) --- */
+        
+        const apiKey = ""; // API Key provided by execution environment
+        
+        const openBtn = document.getElementById('open-diagnostic');
+        const closeBtn = document.getElementById('close-terminal');
+        const terminalOverlay = document.getElementById('ai-terminal');
+        const mainContent = document.getElementById('main-content');
+        const inputField = document.getElementById('terminal-input');
+        const submitBtn = document.getElementById('terminal-submit');
+        const outputDiv = document.getElementById('terminal-output');
+
+        let isTerminalOpen = false;
+
+        // Open Terminal
+        openBtn.addEventListener('click', () => {
+            isTerminalOpen = true;
+            lenis.stop(); // Stop scrolling
+            document.body.style.cursor = 'auto'; // Re-enable normal cursor inside terminal for text selection
+            cDot.style.opacity = 0;
+            cRing.style.opacity = 0;
+            isCursorActive = false;
+
+            terminalOverlay.classList.remove('hidden');
+            terminalOverlay.classList.add('flex');
+            
+            // GSAP fade in
+            gsap.to(terminalOverlay, { opacity: 1, duration: 0.4 });
+            gsap.to(mainContent, { filter: "blur(10px)", duration: 0.4 });
+            
+            setTimeout(() => inputField.focus(), 500);
+        });
+
+        // Close Terminal
+        closeBtn.addEventListener('click', () => {
+            isTerminalOpen = false;
+            
+            gsap.to(terminalOverlay, { 
+                opacity: 0, 
+                duration: 0.4, 
+                onComplete: () => {
+                    terminalOverlay.classList.add('hidden');
+                    terminalOverlay.classList.remove('flex');
+                    lenis.start(); // Resume scroll
+                    document.body.style.cursor = 'none';
+                    cDot.style.opacity = 1;
+                    cRing.style.opacity = 1;
+                    isCursorActive = true;
+                    gsap.to(mainContent, { filter: "blur(0px)", duration: 0.4 });
+                }
+            });
+        });
+
+        // Terminal Typewriter Effect
+        async function typeWriter(element, text, speed = 10) {
+            element.innerHTML = '';
+            element.classList.add('blinking-cursor');
+            
+            for (let i = 0; i < text.length; i++) {
+                element.innerHTML += text.charAt(i);
+                outputDiv.scrollTop = outputDiv.scrollHeight; // Auto scroll to bottom
+                await new Promise(r => setTimeout(r, speed));
+            }
+            element.classList.remove('blinking-cursor');
+        }
+
+        // Gemini API Fetch with Exponential Backoff
+        async function fetchWithBackoff(prompt, retries = 5) {
+            const delays = [1000, 2000, 4000, 8000, 16000];
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            const systemPrompt = "Tu es Jalo_Sys.OP, le système d'intelligence artificielle central de Jalo Technologies. Ton rôle est d'analyser les problèmes structurels, organisationnels ou logiciels des entreprises et de proposer une architecture système pour les résoudre. Tu parles comme une machine d'ingénierie froide, mathématique, extrêmement précise, sans empathie mais orientée vers la performance absolue. Analyse la requête de l'utilisateur et structure ta réponse ainsi: \n1. [ CONSTAT ] : analyse brutale et algorithmique du problème.\n2. [ ARCHITECTURE ] : solution technique (nomme des concepts comme micro-services, lakehouse, API gateway, etc).\n3. [ IMPACT 110% ] : le résultat chiffré ou structurel attendu.\nSois concis, utilise un ton militaire/informatique.";
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    const data = await response.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text || "> ERREUR: Réponse vide du sous-système.";
+                } catch (error) {
+                    if (i === retries - 1) return "> ERREUR CRITIQUE: Connexion au réseau neuronal échouée. Veuillez contacter un ingénieur humain.";
+                    await new Promise(resolve => setTimeout(resolve, delays[i]));
+                }
+            }
+        }
+
+        // Handle Submission
+        async function handleDiagnosticRequest() {
+            const query = inputField.value.trim();
+            if (!query) return;
+
+            // Append user query to terminal
+            const userLine = document.createElement('div');
+            userLine.className = 'text-jalo-yellow mt-4';
+            userLine.textContent = `> ${query}`;
+            outputDiv.appendChild(userLine);
+
+            // Clear input
+            inputField.value = '';
+
+            // Add loading state
+            const loadingLine = document.createElement('div');
+            loadingLine.className = 'text-white/50 mt-2 typing-dots';
+            loadingLine.textContent = '> Analyse de la complexité en cours';
+            outputDiv.appendChild(loadingLine);
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+
+            // Call API
+            const responseText = await fetchWithBackoff(query);
+
+            // Remove loading
+            outputDiv.removeChild(loadingLine);
+
+            // Add response element
+            const responseLine = document.createElement('div');
+            responseLine.className = 'text-white mt-2 border-l-2 border-jalo-blue pl-4 py-2';
+            outputDiv.appendChild(responseLine);
+
+            // Trigger Typewriter
+            await typeWriter(responseLine, responseText, 15);
+        }
+
+        submitBtn.addEventListener('click', handleDiagnosticRequest);
+        inputField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleDiagnosticRequest();
+        });
+
+    </script>
+</body>
+</html>
