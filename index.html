@@ -76,6 +76,7 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.3s ease, color 0.3s ease;
+  top: 0 !important; /* Neutralise l'offset imposé par Google Translate */
 }
 a { text-decoration: none; color: inherit; }
 ul { list-style: none; }
@@ -123,26 +124,39 @@ nav.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-bottom-color: var
 }
 .btn-secondary:hover { background: var(--bg-alt); }
 
-/* Theme Toggle & Google Translate Styles */
-.nav-tools { display: flex; align-items: center; gap: 1rem; }
-.theme-toggle {
+/* Theme & Custom Translate Buttons Styles */
+.nav-tools { display: flex; align-items: center; gap: 0.8rem; }
+.icon-btn {
   background: var(--bg-alt); border: none; width: 40px; height: 40px; border-radius: 10px;
   display: flex; justify-content: center; align-items: center; cursor: pointer;
-  color: var(--text-dark); transition: all 0.3s ease;
+  color: var(--text-dark); transition: all 0.3s ease; position: relative;
 }
-.theme-toggle:hover { background: var(--border-light); transform: scale(1.05); }
-.theme-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.icon-btn:hover { background: var(--border-light); transform: scale(1.05); }
+.icon-btn svg { width: 20px; height: 20px; fill: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-/* Purger le widget de traduction Google pour qu'il soit propre */
-body { top: 0 !important; }
-.skiptranslate iframe { display: none !important; }
-.goog-te-gadget { color: transparent !important; font-size: 0 !important; }
-.goog-te-combo {
-  background: var(--bg-alt); color: var(--text-dark); border: 1px solid var(--border-light);
-  padding: 8px 12px; border-radius: 8px; font-family: var(--ff-main); outline: none; cursor: pointer;
-  font-size: 0.85rem; font-weight: 600; appearance: none;
+/* Menu déroulant de traduction Custom */
+.custom-translate { position: relative; }
+.translate-dropdown {
+  position: absolute; top: 120%; right: 0; background: var(--card-bg);
+  border: 1px solid var(--border-light); border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1); padding: 0.5rem;
+  min-width: 160px; opacity: 0; pointer-events: none;
+  transform: translateY(10px); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
 }
-.goog-te-combo:hover { background: var(--border-light); }
+.translate-dropdown.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.lang-option {
+  padding: 10px 15px; cursor: pointer; border-radius: 8px; font-size: 0.9rem;
+  font-weight: 600; color: var(--text-dark); display: flex; align-items: center; gap: 10px;
+  transition: background 0.2s, color 0.2s;
+}
+.lang-option:hover { background: var(--bg-alt); color: var(--tech-blue); }
+
+/* Purge de l'interface par défaut de Google Translate */
+.skiptranslate iframe,
+.goog-te-banner-frame,
+#goog-gt-tt { display: none !important; }
+.goog-te-spinner-pos { display: none !important; }
 
 /* ━━ HERO SECTION ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .hero {
@@ -401,12 +415,31 @@ footer { padding: 5rem clamp(1.5rem, 5vw, 4rem) 2rem; background: var(--bg-surfa
       <a href="#projets">Preuves à l'appui</a>
       <a href="#equipe">L'équipe</a>
     </div>
+    
     <div class="nav-tools">
-      <div id="google_translate_element"></div>
-      <button class="theme-toggle" id="theme-btn" aria-label="Changer de thème">
+      <!-- Widget de traduction personnalisé (Interface propre) -->
+      <div class="custom-translate">
+        <button class="icon-btn" id="translate-btn" aria-label="Choisir la langue">
+          <!-- Icône standard Google Translate (Material Design) -->
+          <svg viewBox="0 0 24 24">
+            <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+          </svg>
+        </button>
+        <!-- Le menu qui se déploie -->
+        <div class="translate-dropdown" id="translate-dropdown">
+          <div class="lang-option" onclick="changeLanguage('fr')">🇫🇷 Français</div>
+          <div class="lang-option" onclick="changeLanguage('en')">🇬🇧 English</div>
+          <div class="lang-option" onclick="changeLanguage('es')">🇪🇸 Español</div>
+          <div class="lang-option" onclick="changeLanguage('ar')">🇦🇪 العربية</div>
+        </div>
+      </div>
+
+      <!-- Bouton Thème Sombre/Clair -->
+      <button class="icon-btn" id="theme-btn" aria-label="Changer de thème">
         <svg id="theme-icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
       </button>
-      <a href="#contact" class="btn-primary">On en discute ?</a>
+
+      <a href="#contact" class="btn-primary" style="margin-left: 0.5rem;">On en discute ?</a>
     </div>
   </div>
 </nav>
@@ -841,12 +874,14 @@ footer { padding: 5rem clamp(1.5rem, 5vw, 4rem) 2rem; background: var(--bg-surfa
   </div>
 </div>
 
+<!-- LE WIDGET GOOGLE INVISIBLE -->
+<div id="google_translate_element" style="display: none;"></div>
+
 <!-- API DE TRADUCTION GOOGLE -->
 <script type="text/javascript">
 function googleTranslateElementInit() {
   new google.translate.TranslateElement({
     pageLanguage: 'fr', 
-    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
     autoDisplay: false
   }, 'google_translate_element');
 }
@@ -861,7 +896,6 @@ const themeIcon = document.getElementById('theme-icon');
 const sunIcon = `<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
 const moonIcon = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>`;
 
-// Vérification du thème enregistré ou de la préférence système
 const savedTheme = localStorage.getItem('jalo-theme');
 const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
@@ -884,6 +918,32 @@ themeBtn.addEventListener('click', () => {
     themeIcon.innerHTML = sunIcon;
   }
 });
+
+/* ━━ LOGIQUE TRADUCTION CUSTOM ━━━━━━━━━━━━━ */
+const translateBtn = document.getElementById('translate-btn');
+const translateDropdown = document.getElementById('translate-dropdown');
+
+translateBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  translateDropdown.classList.toggle('show');
+});
+
+// Fermer le dropdown en cliquant ailleurs
+document.addEventListener('click', () => {
+  if (translateDropdown.classList.contains('show')) {
+    translateDropdown.classList.remove('show');
+  }
+});
+
+// Fonction pour déclencher le widget Google masqué
+function changeLanguage(langCode) {
+  const selectElement = document.querySelector('.goog-te-combo');
+  if (selectElement) {
+    selectElement.value = langCode;
+    selectElement.dispatchEvent(new Event('change'));
+  }
+  translateDropdown.classList.remove('show');
+}
 
 /* ━━ DONNÉES DES CAS CLIENTS ━━ */
 const caseStudiesData = {
@@ -926,7 +986,6 @@ const caseStudiesData = {
 };
 
 /* ━━ LOGIQUE DES MODALES ━━━━━━━━━━━━━━━━━━━ */
-// Modale Cas Clients
 function openModal(caseId) {
   const data = caseStudiesData[caseId];
   if(!data) return;
@@ -963,7 +1022,6 @@ function closeModal() {
   document.body.style.overflow = '';
 }
 
-// Modale Mentions Légales
 function openLegalModal(e) {
   if(e) e.preventDefault();
   document.getElementById('legal-modal').classList.add('active');
@@ -975,7 +1033,6 @@ function closeLegalModal() {
   document.body.style.overflow = '';
 }
 
-// Fermeture avec la touche Echap
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeModal();
@@ -984,110 +1041,48 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* ━━ ANIMATIONS GSAP & SCROLLTRIGGER ━━━━━━━━ */
-// Enregistrement de ScrollTrigger
 gsap.registerPlugin(ScrollTrigger);
 
 window.addEventListener("load", () => {
   
-  // 1. Barre de progression de lecture au scroll
   gsap.to("#scroll-progress", {
-    width: "100%",
-    ease: "none",
-    scrollTrigger: {
-      trigger: "body",
-      start: "top top",
-      end: "bottom bottom",
-      scrub: 0.2
-    }
+    width: "100%", ease: "none",
+    scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.2 }
   });
 
-  // 2. Navbar style
   const nav = document.getElementById('nav');
   window.addEventListener('scroll', () => {
     if (window.scrollY > 20) nav.classList.add('scrolled');
     else nav.classList.remove('scrolled');
   }, { passive: true });
 
-  // 3. Animation du Hero Section (Séquentielle)
   const heroTl = gsap.timeline();
-  heroTl.from(".gs-fade-up", { 
-    y: 30, opacity: 0, duration: 1, stagger: 0.15, ease: "power3.out" 
-  })
-  .from(".gs-hero-vis", {
-    x: 50, opacity: 0, duration: 1.2, ease: "power3.out"
-  }, "-=0.8");
+  heroTl.from(".gs-fade-up", { y: 30, opacity: 0, duration: 1, stagger: 0.15, ease: "power3.out" })
+        .from(".gs-hero-vis", { x: 50, opacity: 0, duration: 1.2, ease: "power3.out" }, "-=0.8");
   
-  // Floating continuel pour les cartes du Hero
   gsap.to(".mc-1", { y: -10, duration: 2, yoyo: true, repeat: -1, ease: "sine.inOut" });
   gsap.to(".mc-2", { y: 15, duration: 2.5, yoyo: true, repeat: -1, ease: "sine.inOut", delay: 0.5 });
   gsap.to(".mc-3", { y: -15, duration: 3, yoyo: true, repeat: -1, ease: "sine.inOut", delay: 1 });
 
-  // 4. Mur de Logos (Apparition en cascade corrigée)
-  gsap.fromTo(".gs-logo-title", 
-    { y: 20, autoAlpha: 0 },
-    { scrollTrigger: { trigger: ".logo-wall-sec", start: "top 90%" }, y: 0, autoAlpha: 1, duration: 0.8, ease: "power2.out" }
-  );
-  gsap.fromTo(".gs-logo-item", 
-    { y: 30, autoAlpha: 0 },
-    { scrollTrigger: { trigger: ".logo-wall-sec", start: "top 85%" }, y: 0, autoAlpha: 0.5, stagger: 0.15, duration: 0.8, ease: "back.out(1.7)" }
-  );
+  gsap.fromTo(".gs-logo-title", { y: 20, autoAlpha: 0 }, { scrollTrigger: { trigger: ".logo-wall-sec", start: "top 90%" }, y: 0, autoAlpha: 1, duration: 0.8, ease: "power2.out" });
+  gsap.fromTo(".gs-logo-item", { y: 30, autoAlpha: 0 }, { scrollTrigger: { trigger: ".logo-wall-sec", start: "top 85%" }, y: 0, autoAlpha: 0.5, stagger: 0.15, duration: 0.8, ease: "back.out(1.7)" });
 
-  // 5. Sections Alternées "Kuda Style" (Parallaxe + Rebond)
   gsap.utils.toArray('.k-feature').forEach((feature, i) => {
     const circle = feature.querySelector('.k-circle');
     const text = feature.querySelector('.k-text');
     const art = feature.querySelector('.k-illu > div:nth-child(2)'); 
 
-    // Effet parallaxe doux sur le grand cercle coloré
-    gsap.to(circle, {
-      y: -60,
-      scrollTrigger: { trigger: feature, start: "top bottom", end: "bottom top", scrub: 1 }
-    });
-
-    // Révélation du cercle avec un effet rebond
-    gsap.from(circle, {
-      scrollTrigger: { trigger: feature, start: "top 75%" },
-      scale: 0.2, opacity: 0, duration: 1.5, ease: "elastic.out(1, 0.75)"
-    });
-
-    // Glissement du texte depuis le côté
-    gsap.from(text, {
-      scrollTrigger: { trigger: feature, start: "top 75%" },
-      x: i % 2 === 0 ? -50 : 50, opacity: 0, duration: 1.2, ease: "power3.out"
-    });
-
-    // Élévation de l'illustration (les interfaces CSS)
-    gsap.from(art, {
-      scrollTrigger: { trigger: feature, start: "top 75%" },
-      y: 60, opacity: 0, duration: 1, delay: 0.3, ease: "power3.out"
-    });
+    gsap.to(circle, { y: -60, scrollTrigger: { trigger: feature, start: "top bottom", end: "bottom top", scrub: 1 } });
+    gsap.from(circle, { scrollTrigger: { trigger: feature, start: "top 75%" }, scale: 0.2, opacity: 0, duration: 1.5, ease: "elastic.out(1, 0.75)" });
+    gsap.from(text, { scrollTrigger: { trigger: feature, start: "top 75%" }, x: i % 2 === 0 ? -50 : 50, opacity: 0, duration: 1.2, ease: "power3.out" });
+    gsap.from(art, { scrollTrigger: { trigger: feature, start: "top 75%" }, y: 60, opacity: 0, duration: 1, delay: 0.3, ease: "power3.out" });
   });
 
-  // 6. Section Portfolio (Cartes en cascade)
-  gsap.from(".gs-port-head", {
-    scrollTrigger: { trigger: ".portfolio-sec", start: "top 85%" },
-    y: 30, opacity: 0, stagger: 0.1, duration: 0.8, ease: "power3.out"
-  });
-  gsap.from(".gs-port-card", {
-    scrollTrigger: { trigger: ".portfolio-grid", start: "top 80%" },
-    y: 50, opacity: 0, stagger: 0.15, duration: 0.8, ease: "power3.out"
-  });
-
-  // 7. Section Équipe (Cartes en cascade)
-  gsap.from(".gs-team-head", {
-    scrollTrigger: { trigger: ".team-sec", start: "top 85%" },
-    y: 30, opacity: 0, stagger: 0.1, duration: 0.8, ease: "power3.out"
-  });
-  gsap.from(".gs-team-card", {
-    scrollTrigger: { trigger: ".team-grid", start: "top 80%" },
-    scale: 0.95, y: 40, opacity: 0, stagger: 0.2, duration: 0.8, ease: "back.out(1.2)"
-  });
-
-  // 8. Section CTA Final
-  gsap.from(".gs-cta", {
-    scrollTrigger: { trigger: ".cta-sec", start: "top 85%" },
-    y: 30, opacity: 0, stagger: 0.15, duration: 0.8, ease: "power3.out"
-  });
+  gsap.from(".gs-port-head", { scrollTrigger: { trigger: ".portfolio-sec", start: "top 85%" }, y: 30, opacity: 0, stagger: 0.1, duration: 0.8, ease: "power3.out" });
+  gsap.from(".gs-port-card", { scrollTrigger: { trigger: ".portfolio-grid", start: "top 80%" }, y: 50, opacity: 0, stagger: 0.15, duration: 0.8, ease: "power3.out" });
+  gsap.from(".gs-team-head", { scrollTrigger: { trigger: ".team-sec", start: "top 85%" }, y: 30, opacity: 0, stagger: 0.1, duration: 0.8, ease: "power3.out" });
+  gsap.from(".gs-team-card", { scrollTrigger: { trigger: ".team-grid", start: "top 80%" }, scale: 0.95, y: 40, opacity: 0, stagger: 0.2, duration: 0.8, ease: "back.out(1.2)" });
+  gsap.from(".gs-cta", { scrollTrigger: { trigger: ".cta-sec", start: "top 85%" }, y: 30, opacity: 0, stagger: 0.15, duration: 0.8, ease: "power3.out" });
 
 });
 </script>
