@@ -51,6 +51,14 @@ a { text-decoration: none; color: inherit; }
 ul { list-style: none; }
 img { max-width: 100%; display: block; object-fit: cover; }
 
+/* ━━ SCROLL PROGRESS BAR ━━━━━━━━━━━━━━━━━━━━━ */
+.scroll-progress {
+  position: fixed; top: 0; left: 0; width: 0%; height: 4px;
+  background: var(--tech-blue); z-index: 1000;
+  box-shadow: 0 0 10px rgba(0, 82, 255, 0.5);
+  transition: width 0.1s;
+}
+
 /* ━━ NAVIGATION ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 nav {
   position: fixed; top: 0; left: 0; width: 100%; z-index: 900;
@@ -62,12 +70,7 @@ nav {
 nav.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-bottom-color: var(--border-light); }
 
 .logo { 
-  font-family: var(--ff-main); font-size: 1.5rem; font-weight: 800; 
-  color: var(--tech-blue); display: flex; align-items: center; gap: 8px; 
-}
-.logo-icon {
-  width: 32px; height: 32px; background: var(--tech-blue); color: white;
-  border-radius: 8px; display: grid; place-items: center; font-size: 1.1rem;
+  display: flex; align-items: center; gap: 8px; 
 }
 
 .nav-links { display: flex; gap: 2rem; align-items: center; }
@@ -131,6 +134,7 @@ nav.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-bottom-color: var
 /* ━━ LOGO WALL (Ils nous font confiance) ━━━━━ */
 .logo-wall-sec {
   padding: 4rem 0; background: var(--bg-main); border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light);
+  overflow: hidden;
 }
 .lw-title { text-align: center; font-size: 0.95rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 2.5rem; }
 .logo-grid {
@@ -139,9 +143,9 @@ nav.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-bottom-color: var
 }
 .logo-item {
   display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.5rem; color: var(--text-dark);
-  opacity: 0.5; transition: opacity 0.3s; cursor: default;
+  opacity: 0.5; cursor: default;
 }
-.logo-item:hover { opacity: 1; }
+.logo-item:hover { opacity: 1 !important; transition: opacity 0.3s; }
 .cat-logo { width: 30px; height: 30px; background: #FFCC00; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); display: inline-block; }
 
 /* ━━ KUDA-STYLE ALTERNATING FEATURES ━━━━━━━━━ */
@@ -199,7 +203,7 @@ nav.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-bottom-color: var
 .ps-header p { font-size: 1.1rem; color: var(--text-body); }
 
 .portfolio-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2.5rem; max-width: 1200px; margin: 0 auto; }
-.port-card { background: #fff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid var(--border-light); transition: transform 0.3s; cursor: pointer; display: flex; flex-direction: column;}
+.port-card { background: #fff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid var(--border-light); transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; display: flex; flex-direction: column;}
 .port-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0, 82, 255, 0.08); }
 .port-vis { height: 220px; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden;}
 .port-vis.bg-1 { background: var(--tech-blue-light); }
@@ -282,7 +286,7 @@ nav.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-bottom-color: var
 /* ━━ FOOTER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 footer { padding: 5rem clamp(1.5rem, 5vw, 4rem) 2rem; background: var(--bg-surface); }
 .ft-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 4rem; }
-.ft-logo { font-size: 1.8rem; font-weight: 800; color: var(--tech-blue); margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;}
+.ft-logo { margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;}
 .ft-desc { color: var(--text-body); font-size: 1rem; font-weight: 500; max-width: 300px; line-height: 1.6; }
 .ft-col h4 { font-size: 1.1rem; font-weight: 800; margin-bottom: 1.5rem; color: var(--text-dark); }
 .ft-col ul { display: flex; flex-direction: column; gap: 1rem; }
@@ -313,6 +317,9 @@ footer { padding: 5rem clamp(1.5rem, 5vw, 4rem) 2rem; background: var(--bg-surfa
 </head>
 <body>
 
+<!-- BARRE DE PROGRESSION SCROLL -->
+<div class="scroll-progress" id="scroll-progress"></div>
+
 <!-- NAVIGATION -->
 <nav id="nav">
   <a href="#" class="logo">
@@ -327,20 +334,20 @@ footer { padding: 5rem clamp(1.5rem, 5vw, 4rem) 2rem; background: var(--bg-surfa
 </nav>
 
 <!-- HERO -->
-<section class="hero">
-  <div class="hero-content rv">
-    <div class="badge">🚀 Bâtisseurs de vos ambitions</div>
-    <h1 class="h1">Vous avez la vision. <span>Nous avons le code.</span></h1>
-    <p class="hero-desc">
-      À Jalo Technologie , on construit des plateformes web et des logiciels qui règlent vos vrais problèmes, engagent vos utilisateurs et génèrent du chiffre d'affaires. C'est aussi simple que ça.
+<section class="hero gs-hero">
+  <div class="hero-content">
+    <div class="badge gs-fade-up">🚀 Bâtisseurs de vos ambitions</div>
+    <h1 class="h1 gs-fade-up">Vous avez la vision. <span>Nous avons le code.</span></h1>
+    <p class="hero-desc gs-fade-up">
+      À Jalo Technologie, on construit des plateformes web et des logiciels qui règlent vos vrais problèmes, engagent vos utilisateurs et génèrent du chiffre d'affaires. C'est aussi simple que ça.
     </p>
-    <div class="hero-actions">
+    <div class="hero-actions gs-fade-up">
       <a href="#contact" class="btn-primary">Lancer mon projet</a>
       <a href="#projets" class="btn-secondary">Voir nos résultats</a>
     </div>
   </div>
 
-  <div class="hero-visual rv" style="transition-delay: 0.2s;">
+  <div class="hero-visual gs-hero-vis">
     <div class="hero-circle"></div>
     <div class="mockup-card mc-1">
       <div class="mc-circle"></div>
@@ -366,31 +373,31 @@ footer { padding: 5rem clamp(1.5rem, 5vw, 4rem) 2rem; background: var(--bg-surfa
 </section>
 
 <!-- MUR DE LOGOS -->
-<div class="logo-wall-sec rv">
-  <div class="lw-title">Ces équipes dorment sur leurs deux oreilles grâce à nous</div>
+<div class="logo-wall-sec">
+  <div class="lw-title gs-logo-title">Ces équipes dorment sur leurs deux oreilles grâce à nous</div>
   <div class="logo-grid">
-    <div class="logo-item">
+    <div class="logo-item gs-logo-item">
       <div class="cat-logo"></div>
       CATERPILLAR
     </div>
-    <div class="logo-item" style="font-size: 1.8rem; font-weight: 800; letter-spacing: -0.05em;">
+    <div class="logo-item gs-logo-item" style="font-size: 1.8rem; font-weight: 800; letter-spacing: -0.05em;">
       NEEMBA
     </div>
-    <div class="logo-item" style="font-size: 1.4rem; font-weight: 700;">
+    <div class="logo-item gs-logo-item" style="font-size: 1.4rem; font-weight: 700;">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
       Hervé ZONGO
     </div>
-    <div class="logo-item" style="font-size: 1.2rem; font-weight: 600; text-transform: uppercase;">
+    <div class="logo-item gs-logo-item" style="font-size: 1.2rem; font-weight: 600; text-transform: uppercase;">
       Jalo Logistics
     </div>
   </div>
 </div>
 
-<!-- KUDA STYLE FEATURES (Left / Right Alternating) -->
+<!-- KUDA STYLE FEATURES -->
 <section id="expertises" class="features-container">
   
   <!-- Feature 1 -->
-  <div class="k-feature rv">
+  <div class="k-feature gs-feat-1">
     <div class="k-text">
       <h2>Faites sauter vos plafonds de verre.</h2>
       <p>Vous gérez encore votre boîte sur des fichiers Excel interminables ? Vos équipes perdent des heures sur des tâches répétitives ? On développe des outils internes qui automatisent le travail ennuyeux. Résultat : vous vous concentrez sur ce qui rapporte vraiment.</p>
@@ -411,7 +418,7 @@ footer { padding: 5rem clamp(1.5rem, 5vw, 4rem) 2rem; background: var(--bg-surfa
   </div>
 
   <!-- Feature 2 -->
-  <div class="k-feature rv">
+  <div class="k-feature gs-feat-2">
     <div class="k-text">
       <h2>Faites parler vos données pour vendre plus.</h2>
       <p>L'intuition, c'est bien. Les chiffres, c'est mieux. On connecte tous vos outils entre eux pour vous donner des tableaux de bord clairs. Prenez enfin des décisions basées sur la réalité de votre marché, identifiez où vous perdez de l'argent et optimisez vos conversions.</p>
@@ -446,7 +453,7 @@ footer { padding: 5rem clamp(1.5rem, 5vw, 4rem) 2rem; background: var(--bg-surfa
   </div>
 
   <!-- Feature 3 -->
-  <div class="k-feature rv">
+  <div class="k-feature gs-feat-3">
     <div class="k-text">
       <h2>Un site qui plante, c'est de l'argent qui s'envole.</h2>
       <p>On ne se contente pas de lancer votre produit. On s'assure qu'il tienne la charge, même le jour de votre plus gros pic de trafic. Sécurité bétonnée contre les piratages, hébergement ultra-rapide et sauvegardes automatiques. Respirez, on veille au grain.</p>
@@ -480,17 +487,16 @@ footer { padding: 5rem clamp(1.5rem, 5vw, 4rem) 2rem; background: var(--bg-surfa
 
 </section>
 
-<!-- PORTFOLIO / CAS CLIENTS (Card-based) -->
+<!-- PORTFOLIO / CAS CLIENTS -->
 <section id="projets" class="portfolio-sec">
-  <div class="ps-header rv">
-    <h2>Assez parlé. Regardez ce qu'on a accompli.</h2>
-    <p>Des chiffres, de vrais problèmes résolus et des clients qui ont vu leur quotidien changer radicalement.</p>
+  <div class="ps-header">
+    <h2 class="gs-port-head">Assez parlé. Regardez ce qu'on a accompli.</h2>
+    <p class="gs-port-head">Des chiffres, de vrais problèmes résolus et des clients qui ont vu leur quotidien changer radicalement.</p>
   </div>
 
   <div class="portfolio-grid">
-    
     <!-- Card 1 -->
-    <div class="port-card rv" onclick="openModal('softlogis')">
+    <div class="port-card gs-port-card" onclick="openModal('softlogis')">
       <div class="port-vis bg-1">
         <div class="p-illu-box">
           <div style="height: 15px; width: 40px; background: var(--tech-blue); border-radius: 4px; margin-bottom: 15px;"></div>
@@ -508,7 +514,7 @@ footer { padding: 5rem clamp(1.5rem, 5vw, 4rem) 2rem; background: var(--bg-surfa
     </div>
 
     <!-- Card 2 -->
-    <div class="port-card rv" onclick="openModal('etrack')" style="transition-delay: 0.1s;">
+    <div class="port-card gs-port-card" onclick="openModal('etrack')">
       <div class="port-vis bg-2">
         <div class="p-illu-box" style="display: flex; align-items:flex-end; gap:8px;">
           <div style="width: 20%; height: 40%; background: var(--kuda-green-light); border-radius: 4px 4px 0 0;"></div>
@@ -526,7 +532,7 @@ footer { padding: 5rem clamp(1.5rem, 5vw, 4rem) 2rem; background: var(--bg-surfa
     </div>
 
     <!-- Card 3 -->
-    <div class="port-card rv" onclick="openModal('shops')" style="transition-delay: 0.2s;">
+    <div class="port-card gs-port-card" onclick="openModal('shops')">
       <div class="port-vis bg-3">
         <div class="p-illu-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
           <div style="background: var(--bg-alt); border-radius: 8px;"></div>
@@ -542,24 +548,22 @@ footer { padding: 5rem clamp(1.5rem, 5vw, 4rem) 2rem; background: var(--bg-surfa
         <div class="port-link">Découvrir les résultats ></div>
       </div>
     </div>
-
   </div>
 </section>
 
 <!-- L'ÉQUIPE -->
 <section id="equipe" class="team-sec">
-  <div class="team-header rv">
-    <h2>Les humains derrière le code.</h2>
-    <p style="font-size: 1.15rem; color: var(--text-body);">Une équipe de passionnés obsédée par la performance, le design et l'impact réel de nos solutions sur votre entreprise.</p>
+  <div class="team-header">
+    <h2 class="gs-team-head">Les humains derrière le code.</h2>
+    <p class="gs-team-head" style="font-size: 1.15rem; color: var(--text-body);">Une équipe de passionnés obsédée par la performance, le design et l'impact réel de nos solutions sur votre entreprise.</p>
   </div>
 
   <div class="team-grid">
-    
     <!-- Profil 1 -->
-    <div class="team-card rv">
+    <div class="team-card gs-team-card">
       <div class="t-avatar-wrapper">
         <div class="t-avatar-bg"></div>
-        <img src="https://media.licdn.com/dms/image/v2/C4D03AQH4T1SmtGk4QQ/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1516617224634?e=1774483200&v=beta&t=p98O5-hQkJjzxu78OoGLIpRDXD8nXC2FMnNJTvaN6wc" alt="[Image de Gabriel Medor]" class="t-avatar" />
+        <img src="https://media.licdn.com/dms/image/v2/C4D03AQH4T1SmtGk4QQ/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1516617224634?e=1774483200&v=beta&t=p98O5-hQkJjzxu78OoGLIpRDXD8nXC2FMnNJTvaN6wc" alt="Gabriel Medor" class="t-avatar" />
       </div>
       <div class="t-name">Gabriel Medor</div>
       <div class="t-role">Directeur IT & Sécurité</div>
@@ -571,10 +575,10 @@ footer { padding: 5rem clamp(1.5rem, 5vw, 4rem) 2rem; background: var(--bg-surfa
     </div>
 
     <!-- Profil 2 -->
-    <div class="team-card rv" style="transition-delay: 0.1s;">
+    <div class="team-card gs-team-card">
       <div class="t-avatar-wrapper">
         <div class="t-avatar-bg"></div>
-        <img src="https://media.licdn.com/dms/image/v2/D4E35AQHEIkc1T_WP7Q/profile-framedphoto-shrink_400_400/B4EZxHYn_1IgAc-/0/1770724163967?e=1773219600&v=beta&t=2md_t1SukUKxoZbQxcRWib0c2n5vmKk_uzI5W63ZgnU" alt="[Image de Dylan Mouahet]" class="t-avatar" />
+        <img src="https://media.licdn.com/dms/image/v2/D4E35AQHEIkc1T_WP7Q/profile-framedphoto-shrink_400_400/B4EZxHYn_1IgAc-/0/1770724163967?e=1773219600&v=beta&t=2md_t1SukUKxoZbQxcRWib0c2n5vmKk_uzI5W63ZgnU" alt="Dylan Mouahet" class="t-avatar" />
       </div>
       <div class="t-name">Dylan Mouahet</div>
       <div class="t-role">Lead Developer</div>
@@ -586,10 +590,10 @@ footer { padding: 5rem clamp(1.5rem, 5vw, 4rem) 2rem; background: var(--bg-surfa
     </div>
 
     <!-- Profil 3 -->
-    <div class="team-card rv" style="transition-delay: 0.2s;">
+    <div class="team-card gs-team-card">
       <div class="t-avatar-wrapper">
         <div class="t-avatar-bg"></div>
-        <img src="https://media.licdn.com/dms/image/v2/D4E03AQGPhAtWKK7wpA/profile-displayphoto-scale_400_400/B4EZky1.SpHgAg-/0/1757494638506?e=1774483200&v=beta&t=kRzOEVCEGf9HGjjstAP6i05ZJTaSakqHOOzFgFx0jlk" alt="[Image de Gabriel Emrick]" class="t-avatar" />
+        <img src="https://media.licdn.com/dms/image/v2/D4E03AQGPhAtWKK7wpA/profile-displayphoto-scale_400_400/B4EZky1.SpHgAg-/0/1757494638506?e=1774483200&v=beta&t=kRzOEVCEGf9HGjjstAP6i05ZJTaSakqHOOzFgFx0jlk" alt="Gabriel Emrick" class="t-avatar" />
       </div>
       <div class="t-name">Gabriel Emrick D.</div>
       <div class="t-role">Resp. Projets & Expert UX</div>
@@ -604,15 +608,17 @@ footer { padding: 5rem clamp(1.5rem, 5vw, 4rem) 2rem; background: var(--bg-surfa
 </section>
 
 <!-- CALL TO ACTION FINAL -->
-<section id="contact" class="cta-sec rv">
+<section id="contact" class="cta-sec">
   <div class="wrap">
-    <h2>On passe à l'action ?</h2>
-    <p>Vous avez lu jusqu'ici, c'est qu'on a des choses à se dire. Racontez-nous votre vision, vos frustrations actuelles avec la technique, et voyons comment on peut vous aider à exploser vos objectifs.</p>
-    <a href="mailto:contact@jalo-technologies.com" class="btn-primary" style="font-size: 1.1rem; padding: 18px 36px; margin-top: 1rem;">
-      Discuter avec un humain
-    </a>
+    <h2 class="gs-cta">On passe à l'action ?</h2>
+    <p class="gs-cta">Vous avez lu jusqu'ici, c'est qu'on a des choses à se dire. Racontez-nous votre vision, vos frustrations actuelles avec la technique, et voyons comment on peut vous aider à exploser vos objectifs.</p>
+    <div class="gs-cta">
+      <a href="mailto:contact@jalo-technologies.com" class="btn-primary" style="font-size: 1.1rem; padding: 18px 36px; margin-top: 1rem;">
+        Discuter avec un humain
+      </a>
+    </div>
     
-    <div class="cta-contact-info">
+    <div class="cta-contact-info gs-cta">
       <div class="cta-item">📍Abidjan, II Plateaux, Rue des Jardins, Pharmacie Arc-en-ciel, 1er étage</div>
       <div class="cta-item">✉️ contact@jalo-technologies.com</div>
       <div class="cta-item">📞 +225 XX XX XX XX</div>
@@ -667,18 +673,14 @@ footer { padding: 5rem clamp(1.5rem, 5vw, 4rem) 2rem; background: var(--bg-surfa
 <div id="cas-client-modal" class="modal-overlay" onclick="if(event.target === this) closeModal()">
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal()">×</button>
-    
-    <!-- Hero coloré à la place de l'image -->
     <div class="modal-hero" id="modal-hero">
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="2" id="modal-hero-icon">
         <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
       </svg>
     </div>
-    
     <div class="modal-body">
       <div class="modal-client" id="modal-client">Client</div>
       <h3 class="modal-title" id="modal-title">Titre du Projet</h3>
-      
       <div class="modal-grid">
         <div class="modal-main-col">
           <div class="modal-section">
@@ -690,7 +692,6 @@ footer { padding: 5rem clamp(1.5rem, 5vw, 4rem) 2rem; background: var(--bg-surfa
             <p id="modal-solution">Description de la solution...</p>
           </div>
         </div>
-        
         <div class="modal-sidebar">
           <div class="modal-section">
             <h4>Impact direct sur le business</h4>
@@ -788,37 +789,112 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeModal();
 });
 
-/* ━━ ANIMATIONS & SCROLL ━━━━━━━━━━━━━━━━━━━━ */
-const nav = document.getElementById('nav');
-window.addEventListener('scroll', () => {
-  if (window.scrollY > 20) nav.classList.add('scrolled');
-  else nav.classList.remove('scrolled');
-}, { passive: true });
+/* ━━ ANIMATIONS GSAP & SCROLLTRIGGER ━━━━━━━━ */
+// Enregistrement de ScrollTrigger
+gsap.registerPlugin(ScrollTrigger);
 
 window.addEventListener("load", () => {
-  gsap.from(".hero-content .badge", { y: 20, opacity: 0, duration: 0.8, ease: "power3.out" });
-  gsap.from(".hero-content .h1", { y: 30, opacity: 0, duration: 1, ease: "power3.out", delay: 0.1 });
-  gsap.from(".hero-desc", { y: 30, opacity: 0, duration: 1, ease: "power3.out", delay: 0.2 });
-  gsap.from(".hero-actions", { y: 30, opacity: 0, duration: 1, ease: "power3.out", delay: 0.3 });
-  gsap.from(".hero-visual", { y: 50, opacity: 0, duration: 1.2, ease: "power3.out", delay: 0.4 });
   
-  // Animation du hero
+  // 1. Barre de progression de lecture au scroll
+  gsap.to("#scroll-progress", {
+    width: "100%",
+    ease: "none",
+    scrollTrigger: {
+      trigger: "body",
+      start: "top top",
+      end: "bottom bottom",
+      scrub: 0.2
+    }
+  });
+
+  // 2. Navbar style
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 20) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+  }, { passive: true });
+
+  // 3. Animation du Hero Section (Séquentielle)
+  const heroTl = gsap.timeline();
+  heroTl.from(".gs-fade-up", { 
+    y: 30, opacity: 0, duration: 1, stagger: 0.15, ease: "power3.out" 
+  })
+  .from(".gs-hero-vis", {
+    x: 50, opacity: 0, duration: 1.2, ease: "power3.out"
+  }, "-=0.8");
+  
+  // Floating continuel pour les cartes du Hero
   gsap.to(".mc-1", { y: -10, duration: 2, yoyo: true, repeat: -1, ease: "sine.inOut" });
   gsap.to(".mc-2", { y: 15, duration: 2.5, yoyo: true, repeat: -1, ease: "sine.inOut", delay: 0.5 });
   gsap.to(".mc-3", { y: -15, duration: 3, yoyo: true, repeat: -1, ease: "sine.inOut", delay: 1 });
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        gsap.to(entry.target, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" });
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+  // 4. Mur de Logos (Apparition en cascade corrigée)
+  gsap.fromTo(".gs-logo-title", 
+    { y: 20, autoAlpha: 0 },
+    { scrollTrigger: { trigger: ".logo-wall-sec", start: "top 90%" }, y: 0, autoAlpha: 1, duration: 0.8, ease: "power2.out" }
+  );
+  gsap.fromTo(".gs-logo-item", 
+    { y: 30, autoAlpha: 0 },
+    { scrollTrigger: { trigger: ".logo-wall-sec", start: "top 85%" }, y: 0, autoAlpha: 0.5, stagger: 0.15, duration: 0.8, ease: "back.out(1.7)" }
+  );
 
-  document.querySelectorAll('.rv').forEach(el => {
-    observer.observe(el);
+  // 5. Sections Alternées "Kuda Style" (Parallaxe + Rebond)
+  gsap.utils.toArray('.k-feature').forEach((feature, i) => {
+    const circle = feature.querySelector('.k-circle');
+    const text = feature.querySelector('.k-text');
+    const art = feature.querySelector('.k-illu > div:nth-child(2)'); 
+
+    // Effet parallaxe doux sur le grand cercle coloré
+    gsap.to(circle, {
+      y: -60,
+      scrollTrigger: { trigger: feature, start: "top bottom", end: "bottom top", scrub: 1 }
+    });
+
+    // Révélation du cercle avec un effet rebond
+    gsap.from(circle, {
+      scrollTrigger: { trigger: feature, start: "top 75%" },
+      scale: 0.2, opacity: 0, duration: 1.5, ease: "elastic.out(1, 0.75)"
+    });
+
+    // Glissement du texte depuis le côté
+    gsap.from(text, {
+      scrollTrigger: { trigger: feature, start: "top 75%" },
+      x: i % 2 === 0 ? -50 : 50, opacity: 0, duration: 1.2, ease: "power3.out"
+    });
+
+    // Élévation de l'illustration (les interfaces CSS)
+    gsap.from(art, {
+      scrollTrigger: { trigger: feature, start: "top 75%" },
+      y: 60, opacity: 0, duration: 1, delay: 0.3, ease: "power3.out"
+    });
   });
+
+  // 6. Section Portfolio (Cartes en cascade)
+  gsap.from(".gs-port-head", {
+    scrollTrigger: { trigger: ".portfolio-sec", start: "top 85%" },
+    y: 30, opacity: 0, stagger: 0.1, duration: 0.8, ease: "power3.out"
+  });
+  gsap.from(".gs-port-card", {
+    scrollTrigger: { trigger: ".portfolio-grid", start: "top 80%" },
+    y: 50, opacity: 0, stagger: 0.15, duration: 0.8, ease: "power3.out"
+  });
+
+  // 7. Section Équipe (Cartes en cascade)
+  gsap.from(".gs-team-head", {
+    scrollTrigger: { trigger: ".team-sec", start: "top 85%" },
+    y: 30, opacity: 0, stagger: 0.1, duration: 0.8, ease: "power3.out"
+  });
+  gsap.from(".gs-team-card", {
+    scrollTrigger: { trigger: ".team-grid", start: "top 80%" },
+    scale: 0.95, y: 40, opacity: 0, stagger: 0.2, duration: 0.8, ease: "back.out(1.2)"
+  });
+
+  // 8. Section CTA Final
+  gsap.from(".gs-cta", {
+    scrollTrigger: { trigger: ".cta-sec", start: "top 85%" },
+    y: 30, opacity: 0, stagger: 0.15, duration: 0.8, ease: "power3.out"
+  });
+
 });
 </script>
 </body>
